@@ -19,4 +19,30 @@ public class BillTests
         // Assert: Check the subtotal
         Assert.AreEqual(expectedSubtotal, bill.Subtotal);
     }
+
+    [TestMethod]
+    public void Bill_ShouldAllowZeroSubtotal()
+    {
+        // Arrange
+        decimal expectedSubtotal = 0.00m;
+
+        // Act
+        Bill bill = new Bill(expectedSubtotal);
+
+        // Assert
+        Assert.AreEqual(expectedSubtotal, bill.Subtotal);
+    }
+
+    [TestMethod]
+    public void Bill_ShouldRejectNegativeSubtotal()
+    {
+        // Arrange
+        decimal invalidSubtotal = -10.00m;
+
+        // Act and Assert
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => new Bill(invalidSubtotal));
+    }
 }
+
+

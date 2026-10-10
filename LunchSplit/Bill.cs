@@ -6,6 +6,13 @@ public class Bill
 
     public Bill(decimal subtotal)
     {
+        if (subtotal < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(subtotal),
+                "Subtotal cannot be negative.");
+        }
+
         Subtotal = subtotal;
     }
 }
