@@ -35,4 +35,31 @@ public class SquareSandboxTests
         Assert.IsFalse(string.IsNullOrWhiteSpace(
             result.TransactionId));
     }
+
+
+    // M3-02: Verify Square Sandbox rejects a declined card.
+    [TestMethod]
+    public async Task M3_02_DeclinedCard_ReturnsCardDeclinedError()
+    {
+        // Arrange: Create a $25.00 CAD payment with a declined card.
+        var processor = new SquarePaymentProcessor();
+
+        var request = new PaymentRequest
+        {
+            Amount = 2500,
+            Currency = "CAD",
+            SourceId = "cnon:card-nonce-declined",
+            IdempotencyKey = Guid.NewGuid().ToString()
+        };
+
+        // Act: Attempt to process the declined payment.
+        var result = await processor.ProcessPaymentAsync(request);
+
+        // Assert: Verify the payment failed.
+        Assert.IsFalse(result.Success);
+
+        // Verify Square returned the declined card error.
+        Assert.AreEqual("GENERIC_DECLINE", result.ErrorCode);
+    }
+
 }

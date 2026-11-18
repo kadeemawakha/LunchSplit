@@ -95,15 +95,20 @@ public class SquarePaymentProcessor : IPaymentProcessor
                     ?? "UNKNOWN"
             };
         }
+
         catch (SquareApiException ex)
         {
-            // Return an unsuccessful result for API errors.
+            // Return the Square error details.
             return new PaymentResult
             {
                 Success = false,
                 Status = "FAILED",
-                ErrorMessage = ex.Message
+                ErrorMessage = ex.Message,
+                ErrorCode = ex.Errors?.FirstOrDefault()?.Code.ToString()
+    ?? string.Empty
             };
         }
+
     }
 }
+

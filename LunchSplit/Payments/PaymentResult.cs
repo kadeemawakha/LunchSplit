@@ -25,4 +25,12 @@ public class PaymentResult
     /// Error message when a payment fails.
     /// </summary>
     public string ErrorMessage { get; set; } = string.Empty;
+
+
+    /// <summary>
+    /// Error code returned by Square when a payment fails.
+    /// Example: CARD_DECLINED.
+    /// </summary>
+    public string ErrorCode { get; set; } = string.Empty;
+
 }
