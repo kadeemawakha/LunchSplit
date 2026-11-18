@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Square" Version="47.0.0" />
+  </ItemGroup>
+
 </Project>
