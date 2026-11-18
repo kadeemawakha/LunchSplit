@@ -121,5 +121,29 @@ public class SquarePaymentProcessor : IPaymentProcessor
         }
 
     }
+
+
+    /// <summary>
+    /// Retrieves the status of an existing Square payment.
+    /// </summary>
+    public async Task<string> GetTransactionStatusAsync(
+        string transactionId)
+    {
+        if (string.IsNullOrWhiteSpace(transactionId))
+            throw new ArgumentException(
+                "Transaction ID is required.");
+
+        // Retrieve the payment from Square Sandbox.
+        var response = await _client.Payments.GetAsync(
+            new GetPaymentsRequest
+            {
+                PaymentId = transactionId
+            });
+
+        // Return the current transaction status.
+        return response.Payment?.Status?.ToString()
+            ?? "UNKNOWN";
+    }
+
 }
 

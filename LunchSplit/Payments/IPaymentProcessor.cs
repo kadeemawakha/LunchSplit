@@ -5,22 +5,21 @@ using System.Threading.Tasks;
 namespace LunchSplit.Payments;
 
 /// <summary>
-/// Defines the contract for processing payments.
-/// Implementations can use Square or a mock processor.
+/// Defines the contract for processing payments
+/// and checking transaction statuses.
 /// </summary>
 public interface IPaymentProcessor
 {
     /// <summary>
-    /// Processes a payment request asynchronously.
+    /// Processes a payment asynchronously.
     /// </summary>
-    /// <param name="request">
-    /// The payment information to process.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// Allows the operation to be cancelled.
-    /// </param>
-    /// <returns>The result of the payment attempt.</returns>
     Task<PaymentResult> ProcessPaymentAsync(
         PaymentRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the status of an existing payment.
+    /// </summary>
+    Task<string> GetTransactionStatusAsync(
+        string transactionId);
 }
