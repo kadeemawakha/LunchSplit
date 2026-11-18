@@ -1,0 +1,109 @@
+﻿
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Square;
+using Square.Payments;
+
+namespace LunchSplit.Payments;
+
+/// <summary>
+/// Processes payments through the Square Sandbox API.
+/// </summary>
+public class SquarePaymentProcessor : IPaymentProcessor
+{
+    private readonly SquareClient _client;
+    private readonly string _locationId;
+
+    /// <summary>
+    /// Creates a payment processor using Sandbox credentials.
+    /// </summary>
+    public SquarePaymentProcessor()
+    {
+        string token = Environment.GetEnvironmentVariable(
+            "SQUARE_ACCESS_TOKEN")
+            ?? throw new InvalidOperationException(
+                "Square access token is missing.");
+
+        _locationId = Environment.GetEnvironmentVariable(
+            "SQUARE_LOCATION_ID")
+            ?? throw new InvalidOperationException(
+                "Square location ID is missing.");
+
+        // Connect only to Square's test environment.
+        _client = new SquareClient(
+            token,
+            new ClientOptions
+            {
+                BaseUrl = SquareEnvironment.Sandbox
+            });
+    }
+
+    /// <summary>
+    /// Sends a payment request to Square Sandbox.
+    /// </summary>
+    public async Task<PaymentResult> ProcessPaymentAsync(
+        PaymentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        // Validate the payment before contacting Square.
+        if (request.Amount <= 0)
+            throw new ArgumentException(
+                "Payment amount must be greater than zero.");
+
+        if (!string.Equals(request.Currency, "CAD",
+            StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException(
+                "Only CAD payments are supported.");
+
+        if (string.IsNullOrWhiteSpace(request.SourceId))
+            throw new ArgumentException(
+                "Payment source is required.");
+
+        // Create the payment request for Square.
+        var squareRequest = new CreatePaymentRequest
+        {
+            SourceId = request.SourceId,
+            IdempotencyKey = request.IdempotencyKey,
+            AmountMoney = new Money
+            {
+                Amount = request.Amount,
+                Currency = Currency.Cad
+            },
+            LocationId = _locationId,
+            Autocomplete = true
+        };
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Send the payment to Square Sandbox.
+            var response = await _client.Payments.CreateAsync(
+                squareRequest);
+
+            var payment = response.Payment;
+
+            return new PaymentResult
+            {
+                Success = payment?.Status?.ToString()
+                    == "COMPLETED",
+                TransactionId = payment?.Id ?? string.Empty,
+                Status = payment?.Status?.ToString()
+                    ?? "UNKNOWN"
+            };
+        }
+        catch (SquareApiException ex)
+        {
+            // Return an unsuccessful result for API errors.
+            return new PaymentResult
+            {
+                Success = false,
+                Status = "FAILED",
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+}
