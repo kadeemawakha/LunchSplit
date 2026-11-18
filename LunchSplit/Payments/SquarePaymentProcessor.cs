@@ -53,10 +53,14 @@ public class SquarePaymentProcessor : IPaymentProcessor
             throw new ArgumentException(
                 "Payment amount must be greater than zero.");
 
-        if (!string.Equals(request.Currency, "CAD",
-            StringComparison.OrdinalIgnoreCase))
+        // Validate the payment before contacting Square.
+        if (request.Amount <= 0)
             throw new ArgumentException(
-                "Only CAD payments are supported.");
+                "Payment amount must be greater than zero.");
+
+        if (string.IsNullOrWhiteSpace(request.SourceId))
+            throw new ArgumentException(
+                "Payment source is required.");
 
         if (string.IsNullOrWhiteSpace(request.SourceId))
             throw new ArgumentException(
@@ -70,7 +74,13 @@ public class SquarePaymentProcessor : IPaymentProcessor
             AmountMoney = new Money
             {
                 Amount = request.Amount,
-                Currency = Currency.Cad
+                Currency = request.Currency.ToUpperInvariant() switch
+                {
+                    "CAD" => Currency.Cad,
+                    "EUR" => Currency.Eur,
+                    _ => throw new ArgumentException(
+                        "Unsupported currency.")
+                }
             },
             LocationId = _locationId,
             Autocomplete = true
@@ -105,7 +115,8 @@ public class SquarePaymentProcessor : IPaymentProcessor
                 Status = "FAILED",
                 ErrorMessage = ex.Message,
                 ErrorCode = ex.Errors?.FirstOrDefault()?.Code.ToString()
-    ?? string.Empty
+    ?? string.Empty,
+                HttpStatusCode = (int)ex.StatusCode
             };
         }
 

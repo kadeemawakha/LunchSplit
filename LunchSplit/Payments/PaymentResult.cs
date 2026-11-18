@@ -33,4 +33,5 @@ public class PaymentResult
     /// </summary>
     public string ErrorCode { get; set; } = string.Empty;
 
+    public int? HttpStatusCode { get; set; }
 }
