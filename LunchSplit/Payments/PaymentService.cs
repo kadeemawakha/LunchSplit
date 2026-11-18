@@ -19,6 +19,15 @@ public class PaymentService
         PaymentRequest request,
         CancellationToken cancellationToken = default)
     {
+        // Reject invalid amounts before contacting the gateway.
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (request.Amount <= 0)
+        {
+            throw new ArgumentException(
+                "Payment amount must be greater than zero.");
+        }
+
         try
         {
             return await _processor.ProcessPaymentAsync(
