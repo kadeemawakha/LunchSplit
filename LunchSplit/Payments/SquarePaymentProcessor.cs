@@ -31,12 +31,15 @@ public class SquarePaymentProcessor : IPaymentProcessor
                 "Square location ID is missing.");
 
         // Connect only to Square's test environment.
+
         _client = new SquareClient(
             token,
             new ClientOptions
             {
-                BaseUrl = SquareEnvironment.Sandbox
+                BaseUrl = SquareEnvironment.Sandbox,
+                Timeout = TimeSpan.FromSeconds(30)
             });
+
     }
 
     /// <summary>
@@ -48,19 +51,11 @@ public class SquarePaymentProcessor : IPaymentProcessor
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        // Validate the payment before contacting Square.
-        if (request.Amount <= 0)
-            throw new ArgumentException(
-                "Payment amount must be greater than zero.");
 
         // Validate the payment before contacting Square.
         if (request.Amount <= 0)
             throw new ArgumentException(
                 "Payment amount must be greater than zero.");
-
-        if (string.IsNullOrWhiteSpace(request.SourceId))
-            throw new ArgumentException(
-                "Payment source is required.");
 
         if (string.IsNullOrWhiteSpace(request.SourceId))
             throw new ArgumentException(
